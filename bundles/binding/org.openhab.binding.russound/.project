@@ -152,6 +152,11 @@
 			<location>/home/daniel/.m2/repository/.cache/tycho/org.eclipse.jdt.debug-3.7.101.v20120913-153601.jar/jdimodel.jar</location>
 		</link>
 		<link>
+			<name>nrjavaserial-3.8.8.jar</name>
+			<type>1</type>
+			<location>/Users/daniel/.m2/repository/.cache/tycho/org.openhab.io.transport.serial-1.5.0-SNAPSHOT.jar/lib/nrjavaserial-3.8.8.jar</location>
+		</link>
+		<link>
 			<name>quartz-all-2.1.7.jar</name>
 			<type>1</type>
 			<location>/home/daniel/.m2/repository/.cache/tycho/org.openhab.core.scheduler-1.5.0-SNAPSHOT.jar/lib/quartz-all-2.1.7.jar</location>
