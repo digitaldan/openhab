@@ -1,6 +1,8 @@
-package org.openhab.binding.russound.internal;
+package org.openhab.binding.russound.internal.messages;
 
-public class RussoundZoneState {
+import org.openhab.binding.russound.internal.types.RussoundPartyMode;
+
+public class RussoundZoneStateMessage {
 
 	/**
      * The return message would look like the following.
@@ -27,6 +29,8 @@ public class RussoundZoneState {
         Byte #31 = Current Do Not Disturb state (0x00 = OFF, 0x01 = ON )*
      */
 	
+	private int controller = 0;
+	private int zone = 0;
 	private boolean power = false;
 	private int source = 0;
 	private int volume = 0;
@@ -40,7 +44,7 @@ public class RussoundZoneState {
 	private boolean doNotDisturb = false;
 	
 	
-	public RussoundZoneState(boolean power, int source, int volume, int bass,
+	public RussoundZoneStateMessage(int controller, int zone, boolean power, int source, int volume, int bass,
 			int treble, boolean loudness, int balance, boolean systemOn,
 			boolean sharedSource, RussoundPartyMode partyMode,
 			boolean doNotDisturb) {

@@ -1,6 +1,6 @@
-package org.openhab.binding.russound.internal;
+package org.openhab.binding.russound.internal.messages;
 
-public class RussoundSourceBroadcastDisplayMessage {
+public class RussoundDirectDisplayFeedbackMessage {
 	private int controller;
 	private int zone;
 	private int keypad;
@@ -8,7 +8,7 @@ public class RussoundSourceBroadcastDisplayMessage {
 	private String text;
 	
 	
-	public RussoundSourceBroadcastDisplayMessage(int controller, int zone,
+	public RussoundDirectDisplayFeedbackMessage(int controller, int zone,
 			int keypad, int flashTime, String text) {
 		super();
 		this.controller = controller;

@@ -1,38 +1,134 @@
 package org.openhab.binding.russound.internal;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
-public class RussoundDevice extends Thread{
+import org.openhab.binding.russound.internal.messages.RussoundDirectDisplayFeedbackMessage;
+import org.openhab.binding.russound.internal.messages.RussoundMultiFieldSourceBroadcastDisplayMessage;
+import org.openhab.binding.russound.internal.messages.RussoundSourceBroadcastDisplayMessage;
+import org.openhab.binding.russound.internal.messages.RussoundZoneStateMessage;
+import org.openhab.binding.russound.internal.types.RussoundBackgroundColor;
+import org.openhab.binding.russound.internal.types.RussoundKeyEvent;
+import org.openhab.binding.russound.internal.types.RussoundPartyMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class RussoundDevice extends Thread {
+
+	private static final Logger logger = LoggerFactory.getLogger(RussoundDevice.class);
+	private static final int START = 0xF0;
+	private static final int END = 0xF7;
 
 	private RussoundConnection connection;
+	private RussoundDeviceListener listener;
 	private boolean running;
 
-	public RussoundDevice (RussoundConnection connection){
+	public RussoundDevice (RussoundConnection connection, RussoundDeviceListener listener){
 		this.connection = connection;
+		this.running = true;
+		start();
 	}
 
 	@Override
 	public void run() {
 		while (running) {
-
+			try {
+				connection.connect();
+				recieveLoop();
+				//sleep for a bit and try again.
+				if(running){
+					try {
+						Thread.sleep(10 * 1000);
+					} catch (InterruptedException ignored) {
+					}
+				}
+			} catch (IOException e) {
+				logger.error("Could not recieve data", e);
+			}
 		}
 	}
 
-	private void send(byte[] bytes) {
+	public void shutdown(){
+		this.running = false;
+	}
 
+	private synchronized void send(byte[] bytes) {
+		try {
+			connection.getOutputStream().write(bytes);
+		} catch (IOException e) {
+			logger.error("Coud not send data", e);
+		}
+	}
+
+	private void recieveLoop() throws IOException{
+		InputStream is = connection.getInputStream();
+		byte bytes[] = new byte[50];
+		int pos = 0;
+		while(running){
+			int data = is.read();
+			//look for the message start byte
+			if(data == START){
+				bytes[0] = (byte)data;
+				pos = 1;
+				//read until we get an end byte or EOF
+				while((data = is.read()) > -1){
+					bytes[pos] = (byte)data;
+					if(data == END)
+						break;
+					pos++;
+				}
+				//validate our byte array looks valid (start + bytes + end)
+				if(pos > 0 && bytes[0] == START && bytes[pos] == END){
+					//zone status have a fixed length, byte 9 looks like
+					//a way to identify this message, maybe?
+					if(bytes.length == 34 && bytes[9] == 0x04){
+						listener.handleZoneStateMessage(processState(Arrays.copyOf(bytes, pos)));
+					} else if(bytes.length == 39 || bytes.length == 41){
+						//source broadcast messages have fixed lengths (with 12 or 16 length text payloads)
+						if(bytes[3] == 0x79){
+							//0x79 is a broadcast message
+							if(bytes[21] >= 0x20){
+								//multi field messages have byte 21 start at 0x20
+								listener.handleMultiFieldSourceBroadcastDisplayMessage(processMultiFieldSourceBroadcastDisplayMessage(Arrays.copyOf(bytes, pos)));
+							} else {
+								//this message will have byte 21 start at 0x10
+								listener.handleSourceBroadcastDisplayMessage(processSourceBroadcastDisplayMessage(Arrays.copyOf(bytes, pos)));
+							}
+						} else {
+							//this is a direct feedback message
+							listener.handleDirectDisplayFeedbackMessage(processDirectDisplayFeedbackMessage(Arrays.copyOf(bytes, pos)));
+						}
+					}
+				}
+			}
+		}
 	}
 
 
-	public void sendKeypadEvent(int zone, RussoundKeyEvent event) {
+	/**
+	 * This sends a remote control key or keyapad event to a zone
+	 * @param zone to send key to (zone 0 being the first zone)
+	 * @param event
+	 */
+	public void sendKeyEvent(int controller, int zone, RussoundKeyEvent event) {
 
-		String cmd = "F0 00 00 7F 00 zz 70 05 02 02 00 ii ## 00 00 00 00 00 01 7B F7";
+		String cmd = "F0 cc 00 7F 00 zz 70 05 02 02 00 ii ## 00 00 00 00 00 01 7B F7";
 
+		cmd.replaceFirst("cc", Integer.toString(controller));
 		cmd.replaceFirst("zz", Integer.toString(zone));
 		cmd.replaceFirst("##", Integer.toString(event.invert() ? event.getValueInverted() : event.getValue()));
 		cmd.replaceFirst("ii", Integer.toString(event.invert() ? 0xf1 : 0x00));
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Sends a Zone On/Off command 
+	 * @param controller
+	 * @param zone
+	 * @param on
+	 */
 	public void sendZoneOnOff(int controller, int zone, boolean on) {
 		/**
 		 * 7.1.1 Set State
@@ -266,7 +362,7 @@ public class RussoundDevice extends Thread{
 		send(formatCommand(cmd));
 	}
 
-	public void sendZoneBackgroundColor(int controller, int zone, Color color) {
+	public void sendZoneBackgroundColor(int controller, int zone, RussoundBackgroundColor color) {
 		/**
 		 * 7.9 Background Color
       Background Color is displayed on keypads as “Amber”, “Green”, or “Off”. The Background
@@ -312,7 +408,7 @@ public class RussoundDevice extends Thread{
 		send(formatCommand(cmd));
 	}
 
-	public void sendPartyMode(int controller, int zone, PartyMode mode) {
+	public void sendPartyMode(int controller, int zone, RussoundPartyMode mode) {
 		/**
 		 * 7.11.2 Set Party Mode
         Select Party Mode “Master”, “On”, or “Off” for a particular zone using a discrete message.
@@ -404,7 +500,7 @@ public class RussoundDevice extends Thread{
 		send(formatCommand(cmd));
 	}
 
-	public RussoundZoneState processState(byte [] message) {
+	public RussoundZoneStateMessage processState(byte [] message) {
 		/**
 		 * The return message would look like the following.
         Byte # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
@@ -430,7 +526,7 @@ public class RussoundDevice extends Thread{
         Byte #31 = Current Do Not Disturb state (0x00 = OFF, 0x01 = ON )*
 		 */
 
-		return new RussoundZoneState(
+		return new RussoundZoneStateMessage(
 				message[21] > 0x00, 
 				message[22],
 				message[23] * 2, 
@@ -495,26 +591,86 @@ public class RussoundDevice extends Thread{
 			Byte #19 = Overall Payload Size
 			Byte #22 = Flash Time low byte (Flash time is in 10ms increments, 0x00 = Constant)
 			Byte #23 = Flash Time high byte
-			Byte #24 – #40 = Text (“102.9 MHz FM” used in above example) Byte #41 = Calculated Checksum
+			Byte #24 – #40 = Text (“102.9 MHz FM” used in above example) 
+			Byte #41 = Calculated Checksum
 		 */
 
+		int length = message.length == 41 ? 16 : 12;
+
+		return new RussoundDirectDisplayFeedbackMessage(
+				message[2],
+				message[3],
+				message[4],
+				byteInt(message[22], message[23]),
+				byteString(message, length,  message.length - length));
+	}
+
+	public RussoundSourceBroadcastDisplayMessage processSourceBroadcastDisplayMessage(byte[] message){
+		/**
+		 * 9.2 Reading Source Broadcast Display Feedback
+			This section describes how to read Source Broadcast Display Feedback messages. These Feedback messages are sent to update all devices monitoring a given Source’s status. These messages may be sent as a direct result of a sent command or as a general update. The Display Feedback message is sent with the source number of the Source attached. The attached source number indicates which Source the update is intended. The message can be displayed for a constant amount of time, or a "Flash" display with a specified length of time (Flash Time is in increments of 10ms).
+			NOTE: It is possible that some display messages will include the special "Invert" control character (0xF1).
+			NOTE: Some of the other bytes within this message may vary. Only the ones necessary to interpret the message are highlighted.
+			NOTE: This message shows a text payload of 16 characters. Some devices may have a text payload of 12 characters.
+			This example shows a Source Broadcast Display Feedback message with text "102.9 MHz FM". 
+			Byte# 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 
+			Value F0 7D 00 79 00 7D 00 00 02 01 01 02 01 01 00 00 01 00 14 00 10 00 00 31
+			Byte # 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 
+			Value  30 32 2E 39 20 4D 48 7A 20 46 4D 00 00 00 00 00 14 F7
+			Byte #4 = Target Keypad ID (NOTE: A value of 0x79 in the Target Keypad ID field indicates that this message is a Source Broadcast Display Feedback message.)
+			Byte #19 = Overall Payload Size
+			Byte #21 = Message type and Source Number = (0x10 (Source Broadcast Display Type) bit-wise OR-ed with the source number (e.g. source 1 = 0x10, source 3 = 0x12))
+			Byte #22 = Flash Time low byte (Flash time is in 10ms increments, 0x00 = Constant) 
+			Byte #23 = Flash Time high byte
+			Bytes #24 – #40 = Text ("102.9 MHz FM")
+			Byte #41 = Calculated Checksum
+		 */
+		int length = message.length == 41 ? 16 : 12;
+		return new RussoundSourceBroadcastDisplayMessage(
+				message[21] - 0x10,
+				byteInt(message[22], message[23]),
+				byteString(message, length,  message.length - length));
+
+	}
+
+	public RussoundMultiFieldSourceBroadcastDisplayMessage processMultiFieldSourceBroadcastDisplayMessage(byte[] message){
+		/**
+		 *	9.3 Reading Multi-Field Broadcast Display Feedback Messages
+			Multi-Field Broadcast Display Feedback messages are sent to update all devices monitoring the Source’s status. These Feedback messages are sent to update all devices monitoring a given Source’s status. These messages may be sent as a direct result of a sent command or as a general update. The Display Feedback message is sent with the source number of the Source attached. A “Field ID” is included with the message to indicate which item is being updated (see table below). The message can be displayed for a constant amount of time, or a "Flash" display with a specified length of time (Flash Time is in increments of 10ms).
+			This example shows a Multi-Field Broadcast Display Feedback message text "49: Fine Tuning". 
+			Byte# 1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 
+			Value F0 7D 00 79 00 7D 00 00 02 01 01 02 01 01 00 00 01 00 14 00 20 07 1C 34
+			Byte# 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 
+			Value 39 3A 46 69 6E 65 54 75 6E 69 6E 67 00 00 00 00 09 F7
+			Byte #4 = Target Keypad ID (NOTE: A value of 0x79 in the Target Keypad ID field indicates that this message is a Source Broadcast Display Feedback message.)
+			Byte #19 = Overall Payload Size
+			Byte #21 = Message type and Source Number = (0x20 (Multi-Field Display Type) bit-wise OR- ed with the source number (e.g., source 1 = 0x20, source 3 = 0x22.))
+			Byte #22 = Field ID bit and Flash Bit = (bits 0 – 6 = Field Id (i.e., 0x07 = 7 = Channel Name), Bit 7 – Ignore. Invert control character (0xF1) will be inserted before this byte if Bit 7 is set. Bytes #24 – #40 = Text (“49: Fine Tuning”)
+			Byte #41 = Calculated Checksum
+		 */
+		int length = message.length == 41 ? 16 : 12;
+		return new RussoundMultiFieldSourceBroadcastDisplayMessage(
+				message[21] - 0x20,
+				message[22],
+				byteString(message, length,  message.length - length));
+
+	}
+
+	private String byteString(byte bytes[], int offset, int len){
 		byte[] tmpText = new byte[16];
-		System.arraycopy(message, 24, tmpText, 0, message.length - 24);
+		System.arraycopy(bytes, offset, tmpText, 0, len);
 		String text = null;
 		try {
 			text = new String(tmpText, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		}
-		
-		return new RussoundDirectDisplayFeedbackMessage(
-				message[2],
-				message[3],
-				message[4],
-				((message[22]&0xFF)<<8) | (message[22]&0xFF),
-				text);
+		return text;
 	}
 
+	private int byteInt(byte lsb, byte msb){
+		return (lsb&0xFF)<<8 | (msb&0xFF);
+	}
 
 	private byte[] formatCommand(String cmd) {
 		//convert the checksum placeholder to something we can parse
@@ -581,39 +737,4 @@ public class RussoundDevice extends Thread{
 		bytes[len -2] = (byte)checksum;
 
 	}
-
-
-
-	public enum Color {
-		OFF(0x00),
-		AMBER(0x01),
-		GREEN(0x02);
-
-		private int value = 0;
-
-		Color(int value){
-			this.value = value;
-		}
-		public int getValue() {
-			return value;
-		}
-
-	};
-
-	public enum PartyMode {
-		OFF(0x00),
-		ON(0x01),
-		MASTER(0x03);
-
-		private int value = 0;
-
-		PartyMode(int value){
-			this.value = value;
-		}
-
-		public int getValue() {
-			return value;
-		}
-
-	};
 }

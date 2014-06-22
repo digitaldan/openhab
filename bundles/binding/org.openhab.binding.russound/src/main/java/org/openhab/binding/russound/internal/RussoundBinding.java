@@ -39,7 +39,7 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	 * the refresh interval which is used to poll values from the Russound
 	 * server (optional, defaults to 60000ms)
 	 */
-	private long refreshInterval = 60000;
+	private long refreshInterval = 5000;
 	
 	
 	public RussoundBinding() {
@@ -78,6 +78,9 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	protected void execute() {
 		// the frequently executed code (polling) goes here ...
 		logger.debug("execute() method is called!");
+		/**
+		 * we need to request zone and background state here.
+		 */
 	}
 
 	/**

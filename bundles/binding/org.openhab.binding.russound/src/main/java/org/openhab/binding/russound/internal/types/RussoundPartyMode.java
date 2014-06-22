@@ -1,4 +1,4 @@
-package org.openhab.binding.russound.internal;
+package org.openhab.binding.russound.internal.types;
 
 public enum RussoundPartyMode {
 	OFF(0x00),
