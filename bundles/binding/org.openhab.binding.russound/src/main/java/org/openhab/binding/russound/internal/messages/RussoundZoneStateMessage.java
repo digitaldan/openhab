@@ -49,6 +49,8 @@ public class RussoundZoneStateMessage {
 			boolean sharedSource, RussoundPartyMode partyMode,
 			boolean doNotDisturb) {
 		super();
+		this.controller = controller;
+		this.zone = zone;
 		this.power = power;
 		this.source = source;
 		this.volume = volume;
@@ -62,6 +64,18 @@ public class RussoundZoneStateMessage {
 		this.doNotDisturb = doNotDisturb;
 	}
 	
+	public int getController() {
+		return controller;
+	}
+	public void setController(int controller) {
+		this.controller = controller;
+	}
+	public int getZone() {
+		return zone;
+	}
+	public void setZone(int zone) {
+		this.zone = zone;
+	}
 	public boolean isPower() {
 		return power;
 	}

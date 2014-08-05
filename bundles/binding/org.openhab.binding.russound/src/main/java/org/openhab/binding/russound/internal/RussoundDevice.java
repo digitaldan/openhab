@@ -15,6 +15,13 @@ import org.openhab.binding.russound.internal.types.RussoundPartyMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Russound device takes a RussoundConnection object and does all the main
+ * logic to process incoming and outgoing messages to the actual hardware.  
+ * A RussoundDeviceListener will be called as events happen
+ * @author daniel
+ *
+ */
 public class RussoundDevice extends Thread {
 
 	private static final Logger logger = LoggerFactory.getLogger(RussoundDevice.class);
@@ -24,7 +31,12 @@ public class RussoundDevice extends Thread {
 	private RussoundConnection connection;
 	private RussoundDeviceListener listener;
 	private boolean running;
-
+	
+/**
+ * Represents a Russound device
+ * @param connection
+ * @param listener
+ */
 	public RussoundDevice (RussoundConnection connection, RussoundDeviceListener listener){
 		this.connection = connection;
 		this.running = true;
@@ -43,6 +55,8 @@ public class RussoundDevice extends Thread {
 						Thread.sleep(10 * 1000);
 					} catch (InterruptedException ignored) {
 					}
+				} else {
+					connection.disconnect();
 				}
 			} catch (IOException e) {
 				logger.error("Could not recieve data", e);
@@ -50,10 +64,17 @@ public class RussoundDevice extends Thread {
 		}
 	}
 
+	/**
+	 * Shutdown this connection and disconnect.
+	 */
 	public void shutdown(){
 		this.running = false;
 	}
-
+	
+	/**
+	 * Send data to the Russound controller
+	 * @param bytes
+	 */
 	private synchronized void send(byte[] bytes) {
 		try {
 			connection.getOutputStream().write(bytes);
@@ -62,6 +83,11 @@ public class RussoundDevice extends Thread {
 		}
 	}
 
+	/**
+	 * Main processing loop.  Reads data from the Russound device and calls
+	 * any listeners wit received messages.
+	 * @throws IOException
+	 */
 	private void recieveLoop() throws IOException{
 		InputStream is = connection.getInputStream();
 		byte bytes[] = new byte[50];
@@ -150,6 +176,10 @@ public class RussoundDevice extends Thread {
 
 	}
 
+	/**
+	 * Set All Zones On/Off State
+	 * @param on
+	 */
 	public void sendAllZonesOnOff(boolean on) {
 		/**
 		 * 7.1.3 Set All Zones On/Off State
@@ -170,6 +200,13 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Select the Source for a particular zone 
+	 * 
+	 * @param controller
+	 * @param zone
+	 * @param source
+	 */
 	public void sendZoneSource(int controller, int zone, int source) {
 		/**
 		 * 7.2.1 Set Source
@@ -189,6 +226,12 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Select the Volume for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param volume
+	 */
 	public void sendZoneVolume(int controller, int zone, int volume) {
 		/**
 		 * 7.3.1 Set Volume
@@ -210,6 +253,12 @@ public class RussoundDevice extends Thread {
 
 	}
 
+	/**
+	 * Change the bass for a particular zone up or down
+	 * @param controller
+	 * @param zone
+	 * @param up
+	 */
 	public void sendZoneBassUpDown(int controller, int zone, boolean up) {
 		/**
 		 * 7.4 Bass
@@ -234,8 +283,13 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
-
-	public void sendZoneTrebbleUpDown(int controller, int zone, boolean up) {
+	/**
+	 * Change the treble for a particular zone up or down.
+	 * @param controller
+	 * @param zone
+	 * @param up
+	 */
+	public void sendZoneTrebleUpDown(int controller, int zone, boolean up) {
 
 		/**
 		 * 7.5 Treble
@@ -262,6 +316,12 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Turn on or off loudness for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param on
+	 */
 	public void sendZoneLoudness(int controller, int zone, boolean on) {
 
 		/**
@@ -288,6 +348,12 @@ public class RussoundDevice extends Thread {
 
 	}
 
+	/**
+	 * Move the balance left or right for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param left
+	 */
 	public void sendZoneBalance(int controller, int zone, boolean left) {
 
 		/**
@@ -316,6 +382,12 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Set the volume (0-100) for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param volume
+	 */
 	public void sendZoneTurnOnVolume(int controller, int zone, int volume) {
 		/**
 		 * 7.8.2 Set Turn On Volume
@@ -332,10 +404,16 @@ public class RussoundDevice extends Thread {
 
 		cmd.replaceFirst("cc", Integer.toString(controller));
 		cmd.replaceFirst("zz", Integer.toString(zone));
-		cmd.replaceFirst("##", Integer.toString(volume/2));
+		cmd.replaceFirst("##", Integer.toString(volume <= 0 ? 0 : volume/2));
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Set turn on volume level up or down for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param up
+	 */
 	public void sendZoneTurnOnVolumeUpDown(int controller, int zone, boolean up) {
 		/**
 		 * 7.8 Turn On Volume
@@ -362,6 +440,12 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Set the background color for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param color
+	 */
 	public void sendZoneBackgroundColor(int controller, int zone, RussoundBackgroundColor color) {
 		/**
 		 * 7.9 Background Color
@@ -387,6 +471,12 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Turn DND On or Off for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param on
+	 */
 	public void sendZoneDoNotDisturb(int controller, int zone, boolean on) {
 		/**
 		 * 7.10.2 Set Do Not Disturb
@@ -408,6 +498,12 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Select Party Mode “Master”, “On”, or “Off” for a particular zone
+	 * @param controller
+	 * @param zone
+	 * @param mode
+	 */
 	public void sendPartyMode(int controller, int zone, RussoundPartyMode mode) {
 		/**
 		 * 7.11.2 Set Party Mode
@@ -428,6 +524,15 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * display a text message on a Specific Keypad in the system.
+	 * @param controller
+	 * @param zone
+	 * @param keypad
+	 * @param string
+	 * @param centered
+	 * @param flashTimeMills
+	 */
 	public void displayString(int controller, int zone, int keypad, String string, boolean centered, short flashTimeMills) {
 		/**
 		 * 8.2 On A Specific Keypad
@@ -473,10 +578,21 @@ public class RussoundDevice extends Thread {
 
 	}
 
+	/**
+	 * display a text message on all Keypads in the system.
+	 * @param string
+	 * @param centered
+	 * @param flashTimeMills
+	 */
 	public void displayStringAll(String string, boolean centered, short flashTimeMills) {
 		displayString(0x7F, 0,0,string,centered,flashTimeMills);
 	}
 
+	/**
+	 * Get All Zone info
+	 * @param controller
+	 * @param zone
+	 */
 	public void requestState(int controller, int zone) {
 		/**
 		 * 7.12 Get All Zone info
@@ -500,10 +616,58 @@ public class RussoundDevice extends Thread {
 		send(formatCommand(cmd));
 	}
 
+	/**
+	 * Requests the current background color for a particular zone 
+	 * @param controller
+	 * @param zone
+	 */
+	public void requestBackgroundColor(int controller, int zone){
+		/**
+		 * 7.9.3 GetBackgroundColor
+		The current Background Color for a particular zone can be obtained using the following message.
+		Byte# 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 
+		Value F0 cc 00 7F 00 00 70 01 05 02 00 zz 00 05 00 00 xx F7
+		cc = controller number -1 zz = zone number -1
+		xx = checksum
+		 */
+
+
+		String cmd = "F0 cc 00 7F 00 00 70 01 05 02 00 zz 00 05 00 00 xx F7";
+
+		cmd.replaceFirst("cc", Integer.toString(controller));
+		cmd.replaceFirst("zz", Integer.toString(zone));
+		send(formatCommand(cmd));
+	}
+
+	/**
+	 * Processes a background color message
+	 * @param message
+	 * @return
+	 */
+	public RussoundBackgroundColor processBackgroundColor(byte[] message){
+		/**
+		 * 7.9.3 GetBackgroundColor
+			The return message would look like the following.
+			Byte# 1 2 3 4 5 6 7 8 9 1011121314151617181920212223 24
+			Value F0 00 00 70 cc 00 7F 00 00 05 02 00 zz 00 05 00 00 01 00 01 00 ## xx F7
+			cc = controller number -1
+			zz = zone number -1
+			xx = checksum
+		Byte #22 = Background Color (0x00 = Off, 0x01 = Amber, 0x02 = Green)
+
+		 */
+		return RussoundBackgroundColor.fromState(message[22]);
+	}
+	
+	/**
+	 * Creates a RussoundZoneStateMessage from a byte array
+	 * @param message
+	 * @return
+	 */
 	public RussoundZoneStateMessage processState(byte [] message) {
 		/**
 		 * The return message would look like the following.
-        Byte # 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+        Byte # 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
         Value F0 00 00 70 cc 00 7F 00 00 04 02 00 zz 07 00 00 01 00 0C 00 ## ## ##
         Byte # 24 25 26 27 28 29 30 31 32 33 34
         Value ## ## ## ## ## ## ## ## 00 xx F7
@@ -527,6 +691,8 @@ public class RussoundDevice extends Thread {
 		 */
 
 		return new RussoundZoneStateMessage(
+				message[5],
+				message[13],
 				message[21] > 0x00, 
 				message[22],
 				message[23] * 2, 
@@ -541,39 +707,11 @@ public class RussoundDevice extends Thread {
 
 	}
 
-	public void requestBackgroundColor(int controller, int zone){
-		/**
-		 * 7.9.3 GetBackgroundColor
-		The current Background Color for a particular zone can be obtained using the following message.
-		Byte# 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 
-		Value F0 cc 00 7F 00 00 70 01 05 02 00 zz 00 05 00 00 xx F7
-		cc = controller number -1 zz = zone number -1
-		xx = checksum
-		 */
-
-
-		String cmd = "F0 cc 00 7F 00 00 70 01 05 02 00 zz 00 05 00 00 xx F7";
-
-		cmd.replaceFirst("cc", Integer.toString(controller));
-		cmd.replaceFirst("zz", Integer.toString(zone));
-		send(formatCommand(cmd));
-	}
-
-	public RussoundBackgroundColor processBackgroundColor(byte[] message){
-		/**
-		 * 7.9.3 GetBackgroundColor
-			The return message would look like the following.
-			Byte# 1 2 3 4 5 6 7 8 9 1011121314151617181920212223 24
-			Value F0 00 00 70 cc 00 7F 00 00 05 02 00 zz 00 05 00 00 01 00 01 00 ## xx F7
-			cc = controller number -1
-			zz = zone number -1
-			xx = checksum
-		Byte #22 = Background Color (0x00 = Off, 0x01 = Amber, 0x02 = Green)
-
-		 */
-		return RussoundBackgroundColor.fromState(message[22]);
-	}
-
+	/**
+	 * Creates a RussoundDirectDisplayFeedbackMessage from a byte array
+	 * @param message
+	 * @return
+	 */
 	public RussoundDirectDisplayFeedbackMessage  processDirectDisplayFeedbackMessage(byte[] message){
 		/**
 		 * 9.1 Reading Direct Display Feedback
@@ -605,6 +743,11 @@ public class RussoundDevice extends Thread {
 				byteString(message, length,  message.length - length));
 	}
 
+	/**
+	 * Creates a RussoundSourceBroadcastDisplayMessage from a byte array
+	 * @param message
+	 * @return
+	 */
 	public RussoundSourceBroadcastDisplayMessage processSourceBroadcastDisplayMessage(byte[] message){
 		/**
 		 * 9.2 Reading Source Broadcast Display Feedback
@@ -633,6 +776,12 @@ public class RussoundDevice extends Thread {
 
 	}
 
+	/**
+	 * Creates a RussoundMultiFieldSourceBroadcastDisplayMessage from a byte
+	 * array
+	 * @param message
+	 * @return
+	 */
 	public RussoundMultiFieldSourceBroadcastDisplayMessage processMultiFieldSourceBroadcastDisplayMessage(byte[] message){
 		/**
 		 *	9.3 Reading Multi-Field Broadcast Display Feedback Messages
@@ -656,6 +805,13 @@ public class RussoundDevice extends Thread {
 
 	}
 
+	/**
+	 * Creates a String from a byte array
+	 * @param bytes
+	 * @param offset
+	 * @param len
+	 * @return
+	 */
 	private String byteString(byte bytes[], int offset, int len){
 		byte[] tmpText = new byte[16];
 		System.arraycopy(bytes, offset, tmpText, 0, len);
@@ -668,10 +824,21 @@ public class RussoundDevice extends Thread {
 		return text;
 	}
 
+	/**
+	 * Creates an int from 2 bytes
+	 * @param lsb
+	 * @param msb
+	 * @return
+	 */
 	private int byteInt(byte lsb, byte msb){
 		return (lsb&0xFF)<<8 | (msb&0xFF);
 	}
 
+	/**
+	 * Converts a command string into a byte array
+	 * @param cmd
+	 * @return
+	 */
 	private byte[] formatCommand(String cmd) {
 		//convert the checksum placeholder to something we can parse
 		cmd.replaceFirst("zz", "00");

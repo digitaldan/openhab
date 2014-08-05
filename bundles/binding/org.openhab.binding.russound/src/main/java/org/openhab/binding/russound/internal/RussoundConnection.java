@@ -9,5 +9,6 @@ public interface RussoundConnection {
   public InputStream getInputStream();
   public OutputStream getOutputStream();
   public void connect() throws IOException;
+  public void disconnect() throws IOException;
   
 }

@@ -52,7 +52,15 @@ public class RussoundGenericBindingProvider extends AbstractGenericBindingProvid
 		super.processBindingConfiguration(context, item, bindingConfig);
 		RussoundBindingConfig config = new RussoundBindingConfig();
 		
-		//parse bindingconfig here ...
+		String[] configParts = bindingConfig.trim().split(":");
+		
+		if (configParts.length != 2) {
+			throw new BindingConfigParseException(
+					"Russound configuration must contain of two parts separated by a ':'");
+		}
+		
+		String device = configParts[0];
+		String cmd = configParts[1];
 		
 		addBindingConfig(item, config);		
 	}	

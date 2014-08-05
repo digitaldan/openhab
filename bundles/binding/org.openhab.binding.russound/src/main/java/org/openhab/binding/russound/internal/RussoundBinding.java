@@ -9,9 +9,11 @@
 package org.openhab.binding.russound.internal;
 
 import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.openhab.binding.russound.RussoundBindingProvider;
-
 import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractActiveBinding;
 import org.openhab.core.types.Command;
@@ -34,6 +36,7 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	private static final Logger logger = 
 		LoggerFactory.getLogger(RussoundBinding.class);
 
+	List<RussoundDevice> controllers = new LinkedList<RussoundDevice>();
 	
 	/** 
 	 * the refresh interval which is used to poll values from the Russound
@@ -43,6 +46,7 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	
 	
 	public RussoundBinding() {
+		controllers = new LinkedList<RussoundDevice>();
 	}
 		
 	
@@ -110,6 +114,10 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	 */
 	@Override
 	public void updated(Dictionary<String, ?> config) throws ConfigurationException {
+		
+		stopAll();
+		controllers.clear();
+		
 		if (config != null) {
 			
 			// to override the default refresh interval one has to add a 
@@ -119,11 +127,40 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 				refreshInterval = Long.parseLong(refreshIntervalString);
 			}
 			
-			// read further config parameters here ...
-
-			setProperlyConfigured(true);
+			Enumeration<String> keys = config.keys();
+	        while (keys.hasMoreElements()) {
+	            
+	            String key = (String) keys.nextElement();
+	            //look for name.hosts
+	            if(key.endsWith(".host")){
+	            	String entry = (String)config.get(key);
+	            	String[] entries = entry.split("\\.");
+	            	if(entries.length == 2){
+	            		String name = entries[0];
+	            		String host = entries[1];
+	            		String port = (String)config.get(name + ".port");
+	            	}
+	            }
+	            
+	            if(key.endsWith(".serialDevice")){
+	            	
+	            }
+	        }
+	        
+	        
+	
+			
+			
+			setProperlyConfigured(controllers.size() > 0);
 		}
 	}
 	
-
+	/**
+	 * Stop all russound connections
+	 */
+	private void stopAll(){
+		for(RussoundDevice device : controllers){
+				device.shutdown();
+		}
+	}
 }
