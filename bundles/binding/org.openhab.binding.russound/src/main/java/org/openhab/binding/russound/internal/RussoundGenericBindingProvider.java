@@ -8,6 +8,8 @@
  */
 package org.openhab.binding.russound.internal;
 
+import java.util.regex.Pattern;
+
 import org.openhab.binding.russound.RussoundBindingProvider;
 import org.openhab.core.binding.BindingConfig;
 import org.openhab.core.items.Item;
@@ -25,6 +27,7 @@ import org.openhab.model.item.binding.BindingConfigParseException;
  */
 public class RussoundGenericBindingProvider extends AbstractGenericBindingProvider implements RussoundBindingProvider {
 
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -50,17 +53,57 @@ public class RussoundGenericBindingProvider extends AbstractGenericBindingProvid
 	@Override
 	public void processBindingConfiguration(String context, Item item, String bindingConfig) throws BindingConfigParseException {
 		super.processBindingConfiguration(context, item, bindingConfig);
-		RussoundBindingConfig config = new RussoundBindingConfig();
-		
+				
 		String[] configParts = bindingConfig.trim().split(":");
 		
-		if (configParts.length != 2) {
+		// devName:itemType:controller:zone:keypad
+		RussoundBindingConfig config = null;
+		
+		if (configParts.length< 2) {
 			throw new BindingConfigParseException(
-					"Russound configuration must contain of two parts separated by a ':'");
+					"Russound configuration must contain of at least two parts separated by a ':'");
 		}
 		
-		String device = configParts[0];
-		String cmd = configParts[1];
+		RussoundItemType type = RussoundItemType.getRussoundItemType(configParts[0]);
+		
+		if(type == null)
+			throw new BindingConfigParseException("unknow itemType " + configParts[0]);
+		
+		String deviceName = configParts[1];
+		config = new RussoundBindingConfig(deviceName, type);
+		switch(type){
+		case ZONE_KEY:
+		case ZONE_POWER:
+		case ZONE_SOURCE:
+		case ZONE_VOLUME:
+		case ZONE_BALANCE:
+		case ZONE_TREBLE:
+		case ZONE_BASS:
+		case ZONE_LOUDNESS:
+		case ZONE_TURN_ON_VOLUME:
+		case ZONE_BACKGROUND_COLOR:
+		case ZONE_DND:
+		case ZONE_PARTYMODE:
+			if (configParts.length < 4) {
+				throw new BindingConfigParseException(
+						"type " + configParts[0] + " must contain of at least 4 or more parts separated by a ':'");
+			}
+			
+			int controller = Integer.parseInt(configParts[2]);
+			config.setController(controller);
+			int zone = Integer.parseInt(configParts[3]);
+			config.setZone(zone);
+			break;
+		case ALL_ZONES_POWER:
+			break;
+		case ALL_KEYPADS_DISPLAY_STRING:
+			break;
+		}
+		
+		//
+//		
+//		String device = configParts[0];
+//		String cmd = configParts[1];
 		
 		addBindingConfig(item, config);		
 	}	

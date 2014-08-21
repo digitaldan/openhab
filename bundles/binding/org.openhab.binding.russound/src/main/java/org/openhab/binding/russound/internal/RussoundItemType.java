@@ -17,6 +17,8 @@ public enum RussoundItemType {
 	ZONE_PARTYMODE("zone_partymode"),
 	ZONE_DND("zone_dnd"),
 	ZONE_KEY("zone_key"),
+	ZONE_TURN_ON_VOLUME("zone_turn_on_volume"),
+	ZONE_BACKGROUND_COLOR("zone_background_color"),
 	ALL_ZONES_POWER("all_zones_power"),
 	KEYPAD_DISPLAY_STRING("keypad_display_string"),
 	ALL_KEYPADS_DISPLAY_STRING("all_keypads_display_string");

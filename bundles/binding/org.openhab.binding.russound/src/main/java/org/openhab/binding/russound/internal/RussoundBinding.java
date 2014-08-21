@@ -10,10 +10,15 @@ package org.openhab.binding.russound.internal;
 
 import java.util.Dictionary;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.openhab.binding.russound.RussoundBindingProvider;
+import org.openhab.binding.russound.internal.messages.RussoundDirectDisplayFeedbackMessage;
+import org.openhab.binding.russound.internal.messages.RussoundMultiFieldSourceBroadcastDisplayMessage;
+import org.openhab.binding.russound.internal.messages.RussoundSourceBroadcastDisplayMessage;
+import org.openhab.binding.russound.internal.messages.RussoundZoneStateMessage;
 import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractActiveBinding;
 import org.openhab.core.types.Command;
@@ -36,7 +41,7 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	private static final Logger logger = 
 		LoggerFactory.getLogger(RussoundBinding.class);
 
-	List<RussoundDevice> controllers = new LinkedList<RussoundDevice>();
+	HashMap<String,RussoundDevice> controllers;
 	
 	/** 
 	 * the refresh interval which is used to poll values from the Russound
@@ -46,7 +51,7 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	
 	
 	public RussoundBinding() {
-		controllers = new LinkedList<RussoundDevice>();
+		controllers = new HashMap<String,RussoundDevice>();
 	}
 		
 	
@@ -137,13 +142,29 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	            	String[] entries = entry.split("\\.");
 	            	if(entries.length == 2){
 	            		String name = entries[0];
-	            		String host = entries[1];
+	            		String host = (String)config.get(key);
 	            		String port = (String)config.get(name + ".port");
+						RussoundDevice device = new RussoundDevice(
+								new RussoundNetworkConnection(host,
+										Integer.parseInt(port)),
+								new RussoundDeviceListenerImpl());
+						controllers.put(name,device);
+						device.start();
 	            	}
 	            }
 	            
 	            if(key.endsWith(".serialDevice")){
-	            	
+	            	String entry = (String)config.get(key);
+	            	String[] entries = entry.split("\\.");
+	            	if(entries.length == 2){
+		            	String name = entries[0];
+	            		String dev = (String)config.get(key);
+	            		RussoundDevice device = new RussoundDevice(
+								new RussoundSerialConnection(dev),
+								new RussoundDeviceListenerImpl());
+	            		controllers.put(name,device);
+	            		device.start();
+	            	}
 	            }
 	        }
 	        
@@ -159,8 +180,39 @@ public class RussoundBinding extends AbstractActiveBinding<RussoundBindingProvid
 	 * Stop all russound connections
 	 */
 	private void stopAll(){
-		for(RussoundDevice device : controllers){
+		for(RussoundDevice device : controllers.values()){
 				device.shutdown();
 		}
+	}
+	
+	class RussoundDeviceListenerImpl implements RussoundDeviceListener{
+
+		@Override
+		public void handleDirectDisplayFeedbackMessage(
+				RussoundDirectDisplayFeedbackMessage message) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void handleSourceBroadcastDisplayMessage(
+				RussoundSourceBroadcastDisplayMessage message) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void handleMultiFieldSourceBroadcastDisplayMessage(
+				RussoundMultiFieldSourceBroadcastDisplayMessage message) {
+			// TODO Auto-generated method stub
+			
+		}
+
+		@Override
+		public void handleZoneStateMessage(RussoundZoneStateMessage message) {
+			// TODO Auto-generated method stub
+			
+		}
+		
 	}
 }

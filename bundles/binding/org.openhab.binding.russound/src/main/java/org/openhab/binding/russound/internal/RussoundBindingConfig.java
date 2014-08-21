@@ -1,43 +1,66 @@
 package org.openhab.binding.russound.internal;
 
-import java.util.regex.Pattern;
-
-import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.BindingConfig;
 
 public class RussoundBindingConfig implements BindingConfig{
 
-	private String device;
-	private RussoundItemType type;
-	private String params;
+	private String deviceName;
+	private int controller;
+	private int zone;
+	private int keypad;
 	
-	private final Pattern ZONE_PARAM_PATTERN = Pattern.compile("^(.*):(number)$");
+	private RussoundItemType type;
+	
 	/**
 	 * If the param String contains a controller number return that, otherwise
 	 * return -1
 	 * @return the controller number from our params or -1 if none
 	 */
-	public int getController(){
-		if(StringUtils.isNotBlank(params)){
-			//command:controller:keypad
-		}
-		return -1;
+	public RussoundBindingConfig(String deviceName, RussoundItemType type){
+		super();
+		this.deviceName = deviceName;
+		this.type = type;
 	}
-	
-	public int getZone(){
-		return -1;
+
+	public String getDeviceName() {
+		return deviceName;
 	}
-	
-	public int getKeypad(){
-		return -1;
+
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
 	}
-	
-	public RussoundItemType getRussoundItemType(){
+
+	public int getController() {
+		return controller;
+	}
+
+	public void setController(int controller) {
+		this.controller = controller;
+	}
+
+	public int getZone() {
+		return zone;
+	}
+
+	public void setZone(int zone) {
+		this.zone = zone;
+	}
+
+	public int getKeypad() {
+		return keypad;
+	}
+
+	public void setKeypad(int keypad) {
+		this.keypad = keypad;
+	}
+
+	public RussoundItemType getType() {
 		return type;
 	}
-	
-	public String getParams(){
-		return params;
+
+	public void setType(RussoundItemType type) {
+		this.type = type;
 	}
+	
 	
 }
