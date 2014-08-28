@@ -68,6 +68,8 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.jersey.api.json.JSONWithPadding;
 
+import static org.atmosphere.cpr.ApplicationConfig.MAX_INACTIVE;
+
 /**
  * <p>This class acts as a REST resource for sitemaps and provides different methods to interact with them,
  * like retrieving a list of all available sitemaps or just getting the widgets of a single page.</p>
@@ -91,7 +93,7 @@ public class SitemapResource {
 	
 	public static final String ATMOS_TIMEOUT_HEADER = "X-Atmosphere-Timeout";
 	
-	public static final int DEFAULT_TIMEOUT_SECS = 300;
+
 	
 	@Context UriInfo uriInfo;
 	@Context Broadcaster sitemapBroadcaster;
@@ -147,14 +149,13 @@ public class SitemapResource {
 			if(responseType!=null) {
 		    	Object responseObject = responseType.equals(MediaTypeHelper.APPLICATION_X_JAVASCRIPT) ?
 		    			new JSONWithPadding(getPageBean(sitemapname, pageId, uriInfo.getBaseUriBuilder().build()), callback) : getPageBean(sitemapname, pageId, uriInfo.getBaseUriBuilder().build());
-		    	throw new WebApplicationException(Response.ok(responseObject, responseType).header(ATMOS_TIMEOUT_HEADER, DEFAULT_TIMEOUT_SECS + "").build());
+		    	throw new WebApplicationException(Response.ok(responseObject, responseType).header(ATMOS_TIMEOUT_HEADER,"3000000").build());
 			} else {
 				throw new WebApplicationException(Response.notAcceptable(null).build());
 			}
 		}
 		
-		GeneralBroadcaster sitemapBroadcaster = BroadcasterFactory.getDefault().lookup(GeneralBroadcaster.class, resource.getRequest().getPathInfo(), true);
-		sitemapBroadcaster.addStateChangeListener(new SitemapStateChangeListener());
+		
 		
 		boolean resume = false;
 		try {
@@ -164,11 +165,15 @@ public class SitemapResource {
 			logger.debug(e.getMessage());
 		}
 
+		String maxInactive = sitemapBroadcaster.getBroadcasterConfig().getAtmosphereConfig().getInitParameter(MAX_INACTIVE);
+		
+		int period = Integer.parseInt(maxInactive);
+		
 		return new SuspendResponse.SuspendResponseBuilder<Response>()
 			.scope(SCOPE.REQUEST)
 			.resumeOnBroadcast(resume)
 			.broadcaster(sitemapBroadcaster)
-			.period(DEFAULT_TIMEOUT_SECS, TimeUnit.SECONDS)
+			.period(period, TimeUnit.MILLISECONDS)
 			.outputComments(true).build(); 
     }
 	
