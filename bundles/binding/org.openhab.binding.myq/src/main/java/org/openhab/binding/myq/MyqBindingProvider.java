@@ -23,6 +23,7 @@ import org.openhab.binding.myq.internal.MyqBindingConfig;
  * @since 1.8.0
  */
 public interface MyqBindingProvider extends BindingProvider {
+
 	/**
 	 * Returns the configuration for the item with the given name.
 	 * 
