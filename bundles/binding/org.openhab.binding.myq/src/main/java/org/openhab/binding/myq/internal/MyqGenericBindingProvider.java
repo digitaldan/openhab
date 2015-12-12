@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.openhab.binding.myq.MyqBindingProvider;
-import org.openhab.binding.myq.internal.MyqBindingConfig.ITEMTYPE;
 import org.openhab.core.items.Item;
 import org.openhab.core.library.items.RollershutterItem;
 import org.openhab.core.library.items.SwitchItem;
@@ -79,15 +78,7 @@ public class MyqGenericBindingProvider extends AbstractGenericBindingProvider
 			throws BindingConfigParseException {
 		final MyqBindingConfig config = new MyqBindingConfig();
 
-		if (item instanceof SwitchItem) {
-			config.type = ITEMTYPE.Switch;
-		} else if (item instanceof RollershutterItem) {
-			config.type = ITEMTYPE.Rollershutter;
-		} else if (item instanceof ContactItem) {
-			config.type = ITEMTYPE.ContactStatus;
-		} else if (item instanceof StringItem) {
-			config.type = ITEMTYPE.StringStatus;
-		}
+		config.type = item;		
 		config.deviceIndex = Integer.parseInt(bindingConfig);
 		return config;
 	}

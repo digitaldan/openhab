@@ -71,8 +71,7 @@ public class GarageDoorData {
 											doorstate);
 
 									devices.add(new GarageDoorDevice(deviceId,
-													deviceType, deviceName,
-													doorstate));
+											deviceType, deviceName, doorstate));
 									break;
 								}
 							}
@@ -82,7 +81,7 @@ public class GarageDoorData {
 			}
 		}
 	}
-	
+
 	public GarageDoorDevice getDevice(int index) {
 		return index >= devices.size() ? null : devices.get(index);
 	}

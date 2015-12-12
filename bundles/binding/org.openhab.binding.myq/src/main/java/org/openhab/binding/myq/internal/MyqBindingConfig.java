@@ -9,38 +9,22 @@
 package org.openhab.binding.myq.internal;
 
 import org.openhab.core.binding.BindingConfig;
+import org.openhab.core.items.Item;
 
 /**
  * This represents the configuration of a openHAB item that is binded to garage
  * door opener. It contains the following information:
  *
  * <ul>
- * <li>The Device number of the device returned from the MyQ AP (0 would be the first device)</li>
- * <li>The type is how the binding uses the item</li>
+ * <li>The Device index of the device returned from the MyQ AP (0 would be the first device)</li>
+ * <li>The type is the item type</li>
  * <ul>
- * <li>Switch</li>
- * <li>StringStatus</li>
- * <li>ContactStatus</li>
- * </ul>
- * <li>id is unused at this time</li> </ul>
  * 
  * @author Scott Hanson
  * @since 1.8.0
  */
 public class MyqBindingConfig implements BindingConfig {
-	/**
-	 * The binding type of the myq item.
-	 * <ul>
-	 * <li>Switch</li>
-	 * <li>Rollershutter</li>
-	 * <li>StringStatus</li>
-	 * <li>ContactStatus</li>
-	 * </ul>
-	 */
-	public enum ITEMTYPE {
-		Switch, Rollershutter, StringStatus, ContactStatus
-	};
 
 	int deviceIndex;
-	ITEMTYPE type;
+	Item type;
 }

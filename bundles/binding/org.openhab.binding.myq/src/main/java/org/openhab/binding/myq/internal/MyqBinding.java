@@ -21,6 +21,9 @@ import org.openhab.binding.myq.internal.GarageDoorDevice.GarageDoorStatus;
 import org.openhab.binding.myq.internal.MyqData.InvalidLoginException;
 import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractBinding;
+import org.openhab.core.library.items.ContactItem;
+import org.openhab.core.library.items.RollershutterItem;
+import org.openhab.core.library.items.StringItem;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.StringType;
@@ -187,14 +190,15 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 					MyqBindingConfig deviceConfig = getConfigForItemName(mygItemName);
 
 					if (deviceConfig != null) {
-						GarageDoorDevice garageopener = garageStatus.getDevice(deviceConfig.deviceIndex);
+						GarageDoorDevice garageopener = garageStatus
+								.getDevice(deviceConfig.deviceIndex);
 						if (garageopener != null) {
-							if (deviceConfig.type == MyqBindingConfig.ITEMTYPE.StringStatus) {
+							if (deviceConfig.type instanceof StringItem) {
 								eventPublisher.postUpdate(mygItemName,
 										new StringType(garageopener.getStatus()
 												.getLabel()));
 							}
-							if (deviceConfig.type == MyqBindingConfig.ITEMTYPE.ContactStatus) {
+							if (deviceConfig.type instanceof ContactItem) {
 								if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
 									eventPublisher.postUpdate(mygItemName,
 											OpenClosedType.CLOSED);
@@ -203,7 +207,7 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 											OpenClosedType.OPEN);
 								}
 							}
-							if (deviceConfig.type == MyqBindingConfig.ITEMTYPE.Rollershutter) {
+							if (deviceConfig.type instanceof RollershutterItem) {
 								if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
 									eventPublisher.postUpdate(mygItemName,
 											UpDownType.DOWN);
@@ -259,16 +263,17 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 	 *            The name of the targeted item.
 	 */
 	private void computeCommandForItem(Command command, String itemName) {
-		
+
 		MyqBindingConfig deviceConfig = getConfigForItemName(itemName);
-		
+
 		if (invalidCredentials || deviceConfig == null) {
 			return;
 		}
 
 		try {
 			GarageDoorData garageStatus = myqOnlineData.getGarageData();
-			GarageDoorDevice garageopener = garageStatus.getDevice(deviceConfig.deviceIndex);
+			GarageDoorDevice garageopener = garageStatus
+					.getDevice(deviceConfig.deviceIndex);
 			if (garageopener != null) {
 				// only send command if switch is flipped on like pushbutton
 				if ((command instanceof OnOffType && OnOffType.ON

@@ -43,7 +43,7 @@ public class LoginData {
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> treeData = mapper.readValue(root, Map.class);
 		Object data = treeData.get("SecurityToken");
-		if(data == null)
+		if (data == null)
 			throw new IOException("Could not find SecurityToken in JSON data");
 		securityToken = data.toString();
 		logger.debug("myq securityToken: {}", securityToken);

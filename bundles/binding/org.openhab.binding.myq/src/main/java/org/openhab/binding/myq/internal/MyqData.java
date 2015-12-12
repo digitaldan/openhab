@@ -48,7 +48,6 @@ public class MyqData {
 	private final String webSite = "https://myqexternal.myqdevice.com";
 	private final String appId = "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu";
 
-
 	/**
 	 * Constructor For Chamberlain MyQ http connection
 	 * 
