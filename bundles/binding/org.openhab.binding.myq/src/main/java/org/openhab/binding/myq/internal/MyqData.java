@@ -176,7 +176,7 @@ public class MyqData {
 			int returnCode = rootNode.get("ReturnCode").asInt();
 			logger.debug("myq ReturnCode: {}", returnCode);
 
-			MyQResponseCode rc = MyQResponseCode.FromCode(returnCode);
+			MyQResponseCode rc = MyQResponseCode.fromCode(returnCode);
 
 			switch (rc) {
 			case OK: {

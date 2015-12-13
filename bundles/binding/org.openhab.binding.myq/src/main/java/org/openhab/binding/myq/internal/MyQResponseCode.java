@@ -56,7 +56,7 @@ public enum MyQResponseCode {
 	  * @param code
 	  * @return
 	  */
-	 public static MyQResponseCode FromCode(int code){
+	 public static MyQResponseCode fromCode(int code){
 		 for(MyQResponseCode rc : values()){
 			 if (rc.getCode() == code)
 					return rc;
