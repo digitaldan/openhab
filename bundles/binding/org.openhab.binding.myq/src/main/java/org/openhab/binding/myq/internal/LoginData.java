@@ -38,7 +38,7 @@ public class LoginData {
 	 *            The Json node from the myq website.
 	 */
 	@SuppressWarnings("unchecked")
-	public LoginData(JsonNode root) throws IOException {
+	public LoginData(JsonNode root) throws IOException, InvalidDataException {
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> treeData = mapper.readValue(root, Map.class);
 		Object data = treeData.get("SecurityToken");
