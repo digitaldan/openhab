@@ -16,11 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This Class parses the JSON data and creates a HashMap of Garage Door Opener
- * Devices with the TypeName as the Key.
+ * This Class parses the JSON data and creates a LinkedList of Garage Door Openers
  * <ul>
- * <li>success: JSON request was successful</li>
- * <li>devices: HashMap of Devices</li>
+ * <li>devices: LinkedList of Devices</li>
  * </ul>
  * 
  * @author Scott Hanson
@@ -34,11 +32,8 @@ public class GarageDoorData {
 	/**
 	 * Constructor of the GarageDoorData.
 	 * 
-	 * @param deviceStatusData
-	 *            The Json string as it has been returned myq website.
-	 * 
-	 * @param logData
-	 *            Boolean to determine if devicedata should be logged.
+	 * @param rootNode
+	 *            The Json node returned from the myq website.
 	 */
 	public GarageDoorData(JsonNode rootNode) throws IOException {
 		if (rootNode.has("Devices")) {

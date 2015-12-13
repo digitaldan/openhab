@@ -178,6 +178,7 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 	 */
 	private void poll() {
 		if (invalidCredentials || this.myqOnlineData == null) {
+			logger.debug("Invalid Account Credentials");
 			return;
 		}
 

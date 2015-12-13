@@ -27,8 +27,8 @@ import java.util.Properties;
  * <ul>
  * <li>userName: myQ Login Username</li>
  * <li>password: myQ Login Password</li>
- * <li>logDeviceData: Log Device Data</li>
  * <li>sercurityTokin: sercurityTokin for API requests</li>
+ * <li>header: http header data</li>
  * <li>webSite: url of myQ API</li>
  * <li>appId: appId for API requests</li>
  * </ul>
@@ -57,9 +57,6 @@ public class MyqData {
 	 * @param password
 	 *            Chamberlain MyQ password
 	 * 
-	 * @param logdevicedata
-	 *            Log Device Data to openHAB Log
-	 * 
 	 */
 	public MyqData(String username, String password) {
 		this.userName = username;
@@ -71,11 +68,9 @@ public class MyqData {
 	}
 
 	/**
-	 * Retrieves garage door device data from myq website returns null if
+	 * Retrieves garage door device data from myq website, throws if
 	 * connection fails or user login fails
 	 * 
-	 * @param attemps
-	 *            Attempt number when it recursively calls itself
 	 */
 	public GarageDoorData getGarageData() throws InvalidLoginException,
 			IOException {
@@ -111,8 +106,6 @@ public class MyqData {
 	 *            MyQ deviceID of Garage Door Opener.
 	 * @param state
 	 *            Desired state to put the door in, 1 = open, 0 = closed
-	 * @param attemps
-	 *            Attempt number when it recursively calls itself
 	 */
 	public void executeGarageDoorCommand(int deviceID, int state)
 			throws InvalidLoginException, IOException {
