@@ -204,11 +204,4 @@ public class MyqData {
 			throw new IOException("Could not parse response", e);
 		}
 	}
-
-	@SuppressWarnings("serial")
-	public class InvalidLoginException extends Exception {
-		public InvalidLoginException(String message) {
-			super(message);
-		}
-	}
 }
