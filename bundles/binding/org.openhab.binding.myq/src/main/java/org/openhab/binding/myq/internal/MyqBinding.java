@@ -18,7 +18,6 @@ import java.util.concurrent.TimeUnit;
 import org.openhab.binding.myq.MyqBindingProvider;
 import org.openhab.binding.myq.internal.MyqBindingConfig;
 import org.openhab.binding.myq.internal.GarageDoorDevice.GarageDoorStatus;
-import org.openhab.binding.myq.internal.MyqData.InvalidLoginException;
 import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractBinding;
 import org.openhab.core.library.items.ContactItem;

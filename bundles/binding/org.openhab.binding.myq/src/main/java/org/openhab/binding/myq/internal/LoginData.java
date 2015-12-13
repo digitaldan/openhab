@@ -38,12 +38,12 @@ public class LoginData {
 	 *            The Json node from the myq website.
 	 */
 	@SuppressWarnings("unchecked")
-	public LoginData(JsonNode root) throws IOException {
+	public LoginData(JsonNode root) throws IOException, InvalidDataException {
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> treeData = mapper.readValue(root, Map.class);
 		Object data = treeData.get("SecurityToken");
 		if (data == null)
-			throw new IOException("Could not find SecurityToken in JSON data");
+			throw new InvalidDataException("Could not find SecurityToken in JSON data");
 		securityToken = data.toString();
 		logger.debug("myq securityToken: {}", securityToken);
 	}
