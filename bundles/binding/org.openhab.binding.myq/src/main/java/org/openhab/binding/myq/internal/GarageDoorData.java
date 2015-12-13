@@ -48,9 +48,7 @@ public class GarageDoorData {
 					String deviceType = node.get(i).get("MyQDeviceTypeName")
 							.asText();
 
-					if (deviceType.contains("Garage")
-							&& deviceType.contains("Door")
-							&& deviceType.contains("Opener")) {
+					if (deviceType.matches("Garage\\s?Door\\s?Opener")) {
 						JsonNode attributes = node.get(i).get("Attributes");
 						if (attributes.isArray()) {
 							int attributesSize = attributes.size();
