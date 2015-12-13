@@ -41,7 +41,7 @@ public class MyqGenericBindingProvider extends AbstractGenericBindingProvider
 	}
 
 	/**
-	 * @{inheritDoc
+	 * {@inheritDoc}
 	 */
 	@Override
 	public void validateItemType(Item item, String bindingConfig)
