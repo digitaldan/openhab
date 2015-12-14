@@ -10,6 +10,7 @@ package org.openhab.binding.myq.internal;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.regex.Pattern;
 
 import org.codehaus.jackson.JsonNode;
 import org.slf4j.Logger;
@@ -27,6 +28,11 @@ import org.slf4j.LoggerFactory;
 public class GarageDoorData {
 	static final Logger logger = LoggerFactory.getLogger(GarageDoorData.class);
 
+	/**
+	 * Matching pattern for door device types, some models have spaces in them, some don't
+	 */
+	private static final Pattern DEVICE_TYPE_PATTERN = Pattern.compile("Garage\\s?Door\\s?Opener");
+	
 	LinkedList<GarageDoorDevice> devices = new LinkedList<GarageDoorDevice>();
 
 	/**
@@ -48,7 +54,7 @@ public class GarageDoorData {
 					String deviceType = node.get(i).get("MyQDeviceTypeName")
 							.asText();
 
-					if (deviceType.matches("Garage\\s?Door\\s?Opener")) {
+					if (DEVICE_TYPE_PATTERN.matcher(deviceType).matches()) {
 						JsonNode attributes = node.get(i).get("Attributes");
 						if (attributes.isArray()) {
 							int attributesSize = attributes.size();
