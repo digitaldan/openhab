@@ -20,15 +20,14 @@ import org.openhab.binding.myq.internal.MyqBindingConfig;
 import org.openhab.binding.myq.internal.GarageDoorDevice.GarageDoorStatus;
 import org.apache.commons.lang.StringUtils;
 import org.openhab.core.binding.AbstractBinding;
-import org.openhab.core.library.items.ContactItem;
-import org.openhab.core.library.items.RollershutterItem;
-import org.openhab.core.library.items.StringItem;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
 import org.openhab.core.library.types.StringType;
 import org.openhab.core.library.types.OpenClosedType;
 import org.openhab.core.library.types.UpDownType;
+import org.openhab.core.types.State;
 import org.openhab.core.types.Command;
+import org.openhab.core.types.UnDefType;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -193,34 +192,39 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 						GarageDoorDevice garageopener = garageStatus
 								.getDevice(deviceConfig.deviceIndex);
 						if (garageopener != null) {
-							if (deviceConfig.type instanceof StringItem) {
-								eventPublisher.postUpdate(mygItemName,
-										new StringType(garageopener.getStatus()
-												.getLabel()));
-							}
-							if (deviceConfig.type instanceof ContactItem) {
-								if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
-									eventPublisher.postUpdate(mygItemName,
-											OpenClosedType.CLOSED);
-								} else {
-									eventPublisher.postUpdate(mygItemName,
-											OpenClosedType.OPEN);
+
+							State newState = UnDefType.UNDEF;
+							for (Class<? extends State> type : deviceConfig.acceptedDataTypes) {
+								if (StringType.class == type) {
+									newState = new StringType(garageopener
+											.getStatus().getLabel());
+									break;
+								} else if (OpenClosedType.class == type) {
+									if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
+										newState = OpenClosedType.CLOSED;
+										break;
+									} else {
+										newState = OpenClosedType.OPEN;
+										break;
+									}
+								} else if (UpDownType.class == type) {
+									if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
+										newState = UpDownType.DOWN;
+										break;
+									} else if (garageopener.getStatus() == GarageDoorStatus.OPEN) {
+										newState = UpDownType.UP;
+										break;
+									}
+								} else if (PercentType.class == type) {
+									if (garageopener.getStatus() != GarageDoorStatus.UNKNOWN) {
+										newState = new PercentType(50);
+										break;
+									}
 								}
 							}
-							if (deviceConfig.type instanceof RollershutterItem) {
-								if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
-									eventPublisher.postUpdate(mygItemName,
-											UpDownType.DOWN);
-								} else if (garageopener.getStatus() == GarageDoorStatus.OPEN) {
-									eventPublisher.postUpdate(mygItemName,
-											UpDownType.UP);
-								}
-								// if its not open, close or unknown then its in
-								// a half-way state.
-								else if (garageopener.getStatus() != GarageDoorStatus.UNKNOWN) {
-									eventPublisher.postUpdate(mygItemName,
-											new PercentType(50));
-								}
+							if (newState != UnDefType.UNDEF) {
+								eventPublisher
+										.postUpdate(mygItemName, newState);
 							}
 
 							// make sure we are polling frequently
@@ -249,6 +253,9 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 				command, itemName);
 		if (myqOnlineData != null) {
 			computeCommandForItem(command, itemName);
+		} else {
+			logger.warn("Command '{}' for item '{}' not sent", command,
+					itemName);
 		}
 	}
 

@@ -27,7 +27,7 @@ import java.util.Properties;
  * <ul>
  * <li>userName: myQ Login Username</li>
  * <li>password: myQ Login Password</li>
- * <li>sercurityTokin: sercurityTokin for API requests</li>
+ * <li>sercurityToken: sercurityToken for API requests</li>
  * <li>header: http header data</li>
  * <li>webSite: url of myQ API</li>
  * <li>appId: appId for API requests</li>
@@ -42,7 +42,7 @@ public class MyqData {
 
 	private String userName;
 	private String password;
-	private String sercurityTokin;
+	private String sercurityToken;
 
 	private Properties header;
 	private final String webSite = "https://myqexternal.myqdevice.com";
@@ -68,8 +68,8 @@ public class MyqData {
 	}
 
 	/**
-	 * Retrieves garage door device data from myq website, throws if
-	 * connection fails or user login fails
+	 * Retrieves garage door device data from myq website, throws if connection
+	 * fails or user login fails
 	 * 
 	 */
 	public GarageDoorData getGarageData() throws InvalidLoginException,
@@ -85,7 +85,7 @@ public class MyqData {
 	}
 
 	/**
-	 * Validates Username and Password then saved sercurityTokin to a variable
+	 * Validates Username and Password then saved sercurityToken to a variable
 	 */
 	private void login() throws InvalidLoginException, IOException {
 		logger.debug("attempting to login");
@@ -95,7 +95,7 @@ public class MyqData {
 
 		JsonNode data = request("GET", url, null, null, true);
 		LoginData login = new LoginData(data);
-		sercurityTokin = login.getSecurityToken();
+		sercurityToken = login.getSecurityToken();
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class MyqData {
 		String message = String.format("{\"ApplicationId\":\"%s\","
 				+ "\"SecurityToken\":\"%s\"," + "\"MyQDeviceId\":\"%d\","
 				+ "\"AttributeName\":\"desireddoorstate\","
-				+ "\"AttributeValue\":\"%d\"}", appId, sercurityTokin,
+				+ "\"AttributeValue\":\"%d\"}", appId, sercurityToken,
 				deviceID, state);
 		String url = String
 				.format("%s/api/v4/deviceattribute/putdeviceattribute?appId=%s&SecurityToken=%s",
@@ -130,10 +130,10 @@ public class MyqData {
 	 * @throws InvalidLoginException
 	 */
 	private String getSecurityToken() throws IOException, InvalidLoginException {
-		if (sercurityTokin == null) {
+		if (sercurityToken == null) {
 			login();
 		}
-		return sercurityTokin;
+		return sercurityToken;
 	}
 
 	/**
@@ -167,8 +167,9 @@ public class MyqData {
 
 		logger.debug("Received MyQ  JSON: {}", dataString);
 
-		if (dataString == null)
+		if (dataString == null) {
 			throw new IOException("Null response from MyQ server");
+		}
 
 		try {
 			ObjectMapper mapper = new ObjectMapper();
