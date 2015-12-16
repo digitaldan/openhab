@@ -40,13 +40,17 @@ import java.util.Properties;
 public class MyqData {
 	static final Logger logger = LoggerFactory.getLogger(MyqData.class);
 
+	private static final String WEBSITE = "https://myqexternal.myqdevice.com";
+	public static final String DEFAULT_APP_ID = "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu";
+	public static final int DEFAUALT_TIMEOUT = 5000;
+
 	private String userName;
 	private String password;
+	private String appId;
+	private int timeout;
+	
 	private String sercurityToken;
-
 	private Properties header;
-	private final String webSite = "https://myqexternal.myqdevice.com";
-	private final String appId = "JVM/G9Nwih5BwKgNCjLxiFUQxQijAebyyg8QUHr7JOrP+tuPb8iHfRHKwTmDzHOu";
 
 	/**
 	 * Constructor For Chamberlain MyQ http connection
@@ -57,10 +61,27 @@ public class MyqData {
 	 * @param password
 	 *            Chamberlain MyQ password
 	 * 
+	 * @param appId
+	 *            Chamberlain Application Id, defaults to DEFAULT_APP_ID if null
+	 * 
+	 * @param timeout
+	 *            HTTP timeout in milliseconds, defaults to DEFAUALT_TIMEOUT if not > 0
 	 */
-	public MyqData(String username, String password) {
+	public MyqData(String username, String password, String appId, int timeout) {
 		this.userName = username;
 		this.password = password;
+
+		if (appId != null) {
+			this.appId = appId;
+		} else {
+			this.appId = DEFAULT_APP_ID;
+		}
+
+		if (timeout > 0) {
+			this.timeout = timeout;
+		} else {
+			this.timeout = DEFAUALT_TIMEOUT;
+		}
 
 		header = new Properties();
 		header.put("Accept", "application/json");
@@ -77,7 +98,7 @@ public class MyqData {
 		logger.debug("Retreiveing door data");
 		String url = String.format(
 				"%s/api/v4/userdevicedetails/get?appId=%s&SecurityToken=%s",
-				webSite, appId, getSecurityToken());
+				WEBSITE, appId, getSecurityToken());
 
 		JsonNode data = request("GET", url, null, null, true);
 
@@ -91,7 +112,7 @@ public class MyqData {
 		logger.debug("attempting to login");
 		String url = String
 				.format("%s/api/user/validate?appId=%s&SecurityToken=null&username=%s&password=%s",
-						webSite, appId, userName, password);
+						WEBSITE, appId, userName, password);
 
 		JsonNode data = request("GET", url, null, null, true);
 		LoginData login = new LoginData(data);
@@ -116,7 +137,7 @@ public class MyqData {
 				deviceID, state);
 		String url = String
 				.format("%s/api/v4/deviceattribute/putdeviceattribute?appId=%s&SecurityToken=%s",
-						webSite, appId, getSecurityToken());
+						WEBSITE, appId, getSecurityToken());
 
 		request("PUT", url, message, "application/json", true);
 	}
@@ -163,7 +184,7 @@ public class MyqData {
 
 		String dataString = executeUrl(method, url, header,
 				payload == null ? null : IOUtils.toInputStream(payload),
-				payloadType, 5000);
+				payloadType, timeout);
 
 		logger.debug("Received MyQ  JSON: {}", dataString);
 

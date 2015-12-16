@@ -132,14 +132,26 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 		// update the internal configuration accordingly
 		String usernameString = (String) configuration.get("username");
 		String passwordString = (String) configuration.get("password");
-
+		
+		String appId = (String) configuration.get("appId");
+		if (StringUtils.isBlank(appId)) {
+			appId = MyqData.DEFAULT_APP_ID;
+		}
+		
+		int timeout = MyqData.DEFAUALT_TIMEOUT;
+		String timeoutString = (String) configuration.get("timeout");
+		if (StringUtils.isNotBlank(timeoutString)) {
+			timeout = Integer.parseInt(timeoutString);
+		}
+		
 		// reinitialize connection object if username and password is changed
 		if (StringUtils.isNotBlank(usernameString)
 				&& StringUtils.isNotBlank(passwordString)) {
-			myqOnlineData = new MyqData(usernameString, passwordString);
+			myqOnlineData = new MyqData(usernameString, passwordString, appId, timeout);
+			
+			invalidCredentials = false;
+			schedulePoll(refreshInterval);
 		}
-		invalidCredentials = false;
-		schedulePoll(refreshInterval);
 	}
 
 	/**
