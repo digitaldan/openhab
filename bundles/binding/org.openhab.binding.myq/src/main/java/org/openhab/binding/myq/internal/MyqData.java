@@ -19,6 +19,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import static org.openhab.io.net.http.HttpUtil.executeUrl;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Properties;
 
 /**
@@ -98,7 +100,7 @@ public class MyqData {
 		logger.debug("Retreiveing door data");
 		String url = String.format(
 				"%s/api/v4/userdevicedetails/get?appId=%s&SecurityToken=%s",
-				WEBSITE, appId, getSecurityToken());
+				WEBSITE, enc(appId), enc(getSecurityToken()));
 
 		JsonNode data = request("GET", url, null, null, true);
 
@@ -112,7 +114,7 @@ public class MyqData {
 		logger.debug("attempting to login");
 		String url = String
 				.format("%s/api/user/validate?appId=%s&SecurityToken=null&username=%s&password=%s",
-						WEBSITE, appId, userName, password);
+						WEBSITE, enc(appId), enc(userName), enc(password));
 
 		JsonNode data = request("GET", url, null, null, true);
 		LoginData login = new LoginData(data);
@@ -137,7 +139,7 @@ public class MyqData {
 				deviceID, state);
 		String url = String
 				.format("%s/api/v4/deviceattribute/putdeviceattribute?appId=%s&SecurityToken=%s",
-						WEBSITE, appId, getSecurityToken());
+						WEBSITE, enc(appId), enc(getSecurityToken()));
 
 		request("PUT", url, message, "application/json", true);
 	}
@@ -224,6 +226,20 @@ public class MyqData {
 
 		} catch (JsonProcessingException e) {
 			throw new IOException("Could not parse response", e);
+		}
+	}
+	
+	/**
+	 * URL Encode a string using UTF-8 encoding
+	 * @param string
+	 * @return
+	 */
+	private String enc(String string){
+		try {
+			return URLEncoder.encode(string, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			logger.warn("Could not encode string",e);
+			return string;
 		}
 	}
 }
