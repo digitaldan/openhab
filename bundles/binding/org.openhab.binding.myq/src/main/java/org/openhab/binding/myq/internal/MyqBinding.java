@@ -233,7 +233,12 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 										break;
 									}
 								} else if (PercentType.class == type) {
-									if (garageopener.getStatus() != GarageDoorStatus.UNKNOWN) {
+									if(garageopener.getStatus() == GarageDoorStatus.OPEN){
+										newState = new PercentType(0);
+									} else if (garageopener.getStatus() == GarageDoorStatus.CLOSED){
+										newState = new PercentType(100);
+									} else if (garageopener.getStatus() != GarageDoorStatus.UNKNOWN) {
+										//if we are not open, closed or unknow, we are partially opened
 										newState = new PercentType(50);
 										break;
 									}
