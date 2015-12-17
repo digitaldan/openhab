@@ -224,7 +224,7 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 										newState = UpDownType.UP;
 										break;
 									}
-								}  else if (OnOffType.class == type) {
+								} else if (OnOffType.class == type) {
 									if (garageopener.getStatus() == GarageDoorStatus.CLOSED) {
 										newState = OnOffType.OFF;
 										break;
@@ -233,13 +233,19 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 										break;
 									}
 								} else if (PercentType.class == type) {
-									if(garageopener.getStatus() == GarageDoorStatus.OPEN){
+									switch (garageopener.getStatus()) {
+									case OPEN:
 										newState = new PercentType(0);
-									} else if (garageopener.getStatus() == GarageDoorStatus.CLOSED){
+										break;
+									case CLOSED:
 										newState = new PercentType(100);
-									} else if (garageopener.getStatus() != GarageDoorStatus.UNKNOWN) {
-										//if we are not open, closed or unknow, we are partially opened
+										break;
+									case CLOSING:
+									case OPENING:
+									case PARTIAL:
 										newState = new PercentType(50);
+										break;
+									default:
 										break;
 									}
 								} else if (StringType.class == type) {
