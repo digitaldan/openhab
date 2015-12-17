@@ -235,10 +235,10 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 								} else if (PercentType.class == type) {
 									switch (garageopener.getStatus()) {
 									case OPEN:
-										newState = new PercentType(0);
+										newState = PercentType.ZERO;
 										break;
 									case CLOSED:
-										newState = new PercentType(100);
+										newState = PercentType.HUNDRED;
 										break;
 									case CLOSING:
 									case OPENING:
@@ -273,7 +273,7 @@ public class MyqBinding extends AbstractBinding<MyqBindingProvider> {
 	}
 
 	/**
-	 * @{inheritDoc
+	 * @{inheritDoc}
 	 */
 	@Override
 	public void internalReceiveCommand(String itemName, Command command) {
