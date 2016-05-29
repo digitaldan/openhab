@@ -15,4 +15,5 @@
       <provide interface="org.openhab.model.item.binding.BindingConfigReader"/>
       <provide interface="org.openhab.io.tag.TagBindingProvider"/>
    </service>
+   <reference bind="setItemUIRegistry" cardinality="1..1" interface="org.openhab.ui.items.ItemUIRegistry" name="ItemUIRegistry" policy="dynamic" unbind="unsetItemUIRegistry"/>
 </scr:component>

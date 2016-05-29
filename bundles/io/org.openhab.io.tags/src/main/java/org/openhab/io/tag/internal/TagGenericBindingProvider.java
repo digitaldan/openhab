@@ -8,11 +8,11 @@
  */
 package org.openhab.io.tag.internal;
 
-import org.openhab.core.binding.BindingConfig;
 import org.openhab.core.items.Item;
 import org.openhab.io.tag.TagBindingProvider;
 import org.openhab.model.item.binding.AbstractGenericBindingProvider;
 import org.openhab.model.item.binding.BindingConfigParseException;
+import org.openhab.ui.items.ItemUIRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +28,16 @@ import org.slf4j.LoggerFactory;
 public class TagGenericBindingProvider extends AbstractGenericBindingProvider implements TagBindingProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(TagGenericBindingProvider.class);
+
+    protected ItemUIRegistry itemUIRegistry;
+
+    public void setItemUIRegistry(ItemUIRegistry itemUIRegistry) {
+        this.itemUIRegistry = itemUIRegistry;
+    }
+
+    public void unsetItemUIRegistry(ItemUIRegistry itemUIRegistry) {
+        this.itemUIRegistry = null;
+    }
 
     /**
      * {@inheritDoc}
@@ -60,6 +70,9 @@ public class TagGenericBindingProvider extends AbstractGenericBindingProvider im
 
         String[] tags = bindingConfig.split(",");
         TagBindingConfig config = new TagBindingConfig();
+        config.name = item.getName();
+        config.label = itemUIRegistry.getLabel(item.getName());
+        config.type = item.getClass().getSimpleName();
         config.tags = tags;
         addBindingConfig(item, config);
     }
@@ -68,13 +81,8 @@ public class TagGenericBindingProvider extends AbstractGenericBindingProvider im
      * {@inheritDoc}
      */
     @Override
-    public String[] getTags(String itemName) {
-        TagBindingConfig config = (TagBindingConfig) bindingConfigs.get(itemName);
-        return config != null ? config.tags : new String[] {};
-    }
-
-    static private class TagBindingConfig implements BindingConfig {
-        public String[] tags;
+    public TagBindingConfig getTagBindingConfig(String itemName) {
+        return (TagBindingConfig) bindingConfigs.get(itemName);
     }
 
 }

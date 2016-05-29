@@ -9,6 +9,7 @@
 package org.openhab.io.tag;
 
 import org.openhab.core.binding.BindingProvider;
+import org.openhab.io.tag.internal.TagBindingConfig;
 
 /**
  * Interface for classes that map tags to items
@@ -20,9 +21,9 @@ import org.openhab.core.binding.BindingProvider;
 public interface TagBindingProvider extends BindingProvider {
     /**
      * Get all tags for a given itemName
-     * 
+     *
      * @param itemName
      * @return Array of tags
      */
-    public String[] getTags(String itemName);
+    public TagBindingConfig getTagBindingConfig(String itemName);
 }

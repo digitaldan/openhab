@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 public class TagBinding extends AbstractBinding<TagBindingProvider>implements ManagedService {
 
-    private static final String REST_ENDPOINT = "/rest/tag";
+    private static final String REST_ENDPOINT = "/rest/tags";
 
     private static final Logger logger = LoggerFactory.getLogger(TagBinding.class);
 
@@ -104,12 +104,12 @@ public class TagBinding extends AbstractBinding<TagBindingProvider>implements Ma
      *
      * @return items with tags
      */
-    public Map<String, String[]> getTaggedItems() {
-        HashMap<String, String[]> taggedItems = new HashMap<String, String[]>();
+    public Map<String, TagBindingConfig> getTaggedItems() {
+        HashMap<String, TagBindingConfig> taggedItems = new HashMap<String, TagBindingConfig>();
         for (TagBindingProvider provider : providers) {
             Collection<String> names = provider.getItemNames();
             for (String name : names) {
-                taggedItems.put(name, provider.getTags(name));
+                taggedItems.put(name, provider.getTagBindingConfig(name));
             }
         }
         return taggedItems;
